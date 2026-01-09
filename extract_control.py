@@ -92,6 +92,17 @@ def process_single_segment(video_path, segment, fps, output_dir, midas_model, mi
     output_path = Path(output_dir) / video_id
     output_path.mkdir(parents=True, exist_ok=True) 
     
+    output_file = output_path / f"segment_{segment_idx}_controls.npz"
+    if output_file.exists():
+        try:
+            with np.load(output_file, allow_pickle=True) as data:
+                _ = data["depth"]
+            print(f"✓ Cached segment valid: {segment_idx}")
+            return True
+        except Exception:
+            print(f"⚠ Corrupt cache, reprocessing segment {segment_idx}")
+
+
     # Open video ONCE, outside the loop
     cap = cv2.VideoCapture(str(video_path))
     if not cap.isOpened():
